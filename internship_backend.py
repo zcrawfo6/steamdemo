@@ -9,13 +9,17 @@ Two modes:
                       dashboard's recordFor() expects per state.
 
 Example:
-    python dashboard_backend.py --generate-sample
-    python dashboard_backend.py --input internship_records.csv --output state_data.json
+    python internship_backend.py --generate-sample
+    python internship_backend.py --input internship_records.csv --output state_data.json
+
+With no --input/--output, files are read from and written to this script's
+folder, so it works from any working directory.
 """
 
 import argparse
 import csv
 import json
+import os
 import random
 from collections import Counter
 from datetime import datetime, timezone
@@ -209,9 +213,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--generate-sample", action="store_true", help="write a synthetic internship_records.csv and exit")
     parser.add_argument("--rows-per-state", type=int, default=300)
-    parser.add_argument("--input", default="internship_records.csv", help="CSV of internship records to aggregate")
-    parser.add_argument("--output", default="state_data.json", help="where to write the aggregated dashboard JSON")
+    parser.add_argument("--input", help="CSV of internship records (default: internship_records.csv next to this script)")
+    parser.add_argument("--output", help="where to write the dashboard JSON (default: state_data.json next to this script)")
     args = parser.parse_args()
+
+    # Resolve relative paths against the script's folder, not the shell's cwd.
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if args.input is None:
+        args.input = os.path.join(script_dir, "internship_records.csv")
+    if args.output is None:
+        args.output = os.path.join(script_dir, "state_data.json")
 
     if args.generate_sample:
         generate_sample_data(args.input, rows_per_state=args.rows_per_state)
